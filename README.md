@@ -1,117 +1,210 @@
 # CafeManager
 
-**Disciplina:** Desenvolvimento de Jogos para Plataformas Móveis
+A café-management simulation game for Android. The player takes orders from customers represented by cats and must assemble the requested drinks and desserts before the timer runs out.
 
-**Autores:** Anthony Frade - Valezka Naia
+The project combines a real-time game loop managed through Android UI state with account features, player profiles and score persistence.
 
-## Introdução 
+**Developed by:** Anthony Frade and Valezka Naia  
+**Course:** Game Development for Mobile Platforms — IPCA
 
-O **CafeManager** é jogo de simulação e gestão desenvolvido como projeto prático para a disciplina de Desenvolvimento de Jogos para Plataformas Móveis, tendo como principal objetivo a aplicação prática dos conhecimentos adquiridos ao longo da unidade curricular. O objetivo do jogo é colocar o utilizador no papel de um trabalhador de uma cafeteria, onde deve satisfazer os pedidos de diversos clientes (representados por gatos) dentro de um limite de tempo rigoroso
+## Features
 
-Este projeto visa aplicar conceitos fundmentais de desenvolvimento Android, como a construção de interfaces declarativas, gestão de estados complexos em tempo real e a implementação de mecânicas de jogo (pontuação, vidas e aumento de dificuldade) com a linguagem Kotlin e o framework Jetpack Compose
+### Gameplay
 
-Para garantir uma arquitetura moderna e escalável, o projeto incorpora o **Firebase** como infraestrutura de backend, permitindo a autenticação de utilizadores e a persistência de dados na nuvem em tempo real. Além disso, utiliza o Dagger Hilt para a injeção de dependências, garantindo uma organização eficiente do código e simplificando a comunicação entre as diferentes camadas da aplicação
+- Randomly generated customer orders.
+- Customers represented by a selection of cat illustrations.
+- A 30-second timer for each order.
+- Three player lives.
+- Score and level progression.
+- Increasing order complexity as the player advances.
+- Selection dialogs for drinks and desserts.
+- Sound-volume preference stored locally.
 
-## Estrutura do Projeto 
+The game data defines 18 drink items and 14 dessert items. The order size increases every three levels, up to a maximum of five requested items.
 
-O projeto foi desenvolvido seguindo o padrâo de arquitetura **MVVM (Model-View-ViewModel)**, promovendo a separação de responsibilidades e facilitando a manutenção do código
+### Account and player features
 
-- **`app/`**
-  - **`src/main/java/`**
-    
-    * **`MainActivity.kt`**: Ponto de acesso da aplicação e inicialização da interface gráfica
-    * **`MyCafeManager.kt`**: configuração global da aplicação e navegação Compose
-    * **`models/`**: Contém as classes de dados `GameItem`, `PlayerScore`, `UserProfile` para representar os itens disponíveis no café, a pontuação do jogador e armazenar os dados do utilizador autenticado
-    * **`views/`**: Contém o `GameViewModel`, que gere o estado global, o tempo e a pontuação
-    * **`login/`**: Funcionalidade de autenticação
-    * **`ui/`**: Componentes de interface reutilizáveis (OrderSection, SelectionDialog, StatusRow, SelectedItemsArea) implementados com Jetpack Compose
-    * **`repositories/`**: Abstração da fonte de dados, gerindo a comunicação com o **Firebase Firestore, Auth e DataStore**
-    * **`utils/`**: Usado para gestão de ciclo de vida de áudio
-    * **`navigation/`**: Gestão de rotas e navegação (`Routes`)
-      
-  - **`src/main/res/`**: Recursos da aplicação
-    
-    * **`drawable/`**: imagens e recursos gráficos
-    * **`font/`**: Fonte usada na app
-  
-## Lista de Funcionalidades da Aplicação 
-- **Geração de Pedidos:** sorteio aleatório de combinações de bebidas e doces
+- Email/password authentication through Firebase Authentication.
+- User registration and profile creation.
+- Player profile with highest-score and highest-level statistics.
+- Score submission to Cloud Firestore.
+- Home screen that adapts to the current authentication state.
+- Local sound-volume settings using DataStore Preferences.
 
-- **Sistema de Autenticação:** registo e login de utilizadores integrados com **Firebase Auth**
-- **Cloud Data Storage:** Sincronização de recordes (High Scores) e perfis no **Firestore**
-- **Sistema de Clientes Variados:** uso aleatório de 10 assets diferentes de gatos
-- **Temporizador Reativo:** cronómetro de 30 segundos
-- **Progressão de Dificuldade:** aumento do número de itens a cada 3 níveis que são ultrapassados
-- **Sistema de Vidas:** gestão de 3 vidas com feedback visual (um efeito de transparência na imagem sempre que o jogador perde uma vida)
-- **Menus de Seleção:** diálogos modais para escolha rápida entre 18 bebidas e 14 doces
-- **Gestão de Áudio:** música de fundo em loop e efeitos sonoros para feedback de ações
-- **Persistência Local:** armazenamento das definições de volume via Jetpack DataStore
+## Technology stack
 
-## Esquemas e Protótipos da Aplicação 
-Numa etapa inicial do desenvolvimento, foram estabelecidos esquemas e protótipos conceituais da aplicação, com o objetivo de planear a disposição dos elementos gráficos e a interação do utilizador com o sistema.
+| Technology | Purpose |
+|---|---|
+| Kotlin | Android application and game logic |
+| Jetpack Compose | Declarative user interface |
+| Material 3 | UI components and theming |
+| Navigation Compose | Navigation between app screens |
+| ViewModel | UI and game state management |
+| Kotlin Coroutines / StateFlow | Asynchronous work and observable game state |
+| Firebase Authentication | User sign-in and registration |
+| Cloud Firestore | Player profiles and score records |
+| Hilt / Dagger | Dependency injection |
+| DataStore Preferences | Local settings persistence |
+| Gradle Kotlin DSL | Build configuration |
 
-![Protótipos da Aplicação](docs/ad.png) 
+## Architecture
 
-Estes protótipos serviram de base para a implementação final da interface gráfica
+The application separates screen rendering, state management, data access and dependency provisioning. Compose screens observe ViewModel state, while repositories encapsulate Firebase operations.
 
-## Modelo de Dados
-O modelo de dados utiliza uma `data class` para garantir a integridade dos itens do menu:
-
-```kotlin
-data class GameItem(
-    val id: Int,
-    val name: String,
-    val type: ItemType,
-    @DrawableRes val iconRes: Int
-)
-
-enum class ItemType { DRINK, DESSERT }
+```mermaid
+flowchart TD
+    A["MainActivity"] --> B["CafeManagerApp"]
+    B --> C["Navigation Compose"]
+    C --> D["HomeView"]
+    C --> E["LoginScreen"]
+    C --> F["RegisterScreen"]
+    C --> G["GameScreenView"]
+    C --> H["GameOverView"]
+    D --> I["HomeViewModel"]
+    E --> J["LoginViewModel"]
+    F --> K["RegisterViewModel"]
+    G --> L["GameViewModel"]
+    H --> M["GameOverViewModel"]
+    J --> N["AuthRepository"]
+    K --> N
+    I --> O["FirebaseAuth"]
+    M --> P["ScoreRepository"]
+    M --> N
+    N --> Q["Firebase Authentication / Firestore"]
+    P --> Q
+    L --> R["Game state: score, lives, level, timer, orders"]
+    S["Hilt AppModule"] --> O
+    S --> Q
+    T["SettingsRepository"] --> U["DataStore Preferences"]
 ```
-As pontuações são geridas pela classe `PlayerScore`, permitindo a criação de rankings futuros:
-```kotlin
-data class PlayerScore(
-    var docId: String? = null,   // ID do documento no Firestore
-    var userId: String? = null,  // UID do utilizador
-    var playerName: String? = null, // Nome do jogador
-    var score: Int = 0,          // Valor do score
-)
+
+### Application and navigation
+
+- `MainActivity.kt` is the Android entry point and launches `CafeManagerApp`.
+- `MyCafeManagerApp.kt` is annotated with `@HiltAndroidApp` to initialise Hilt.
+- `navigation/Routes.kt` defines the navigation destinations.
+- `CafeManagerApp` configures the navigation graph for Home, Login, Register, Game and Game Over screens.
+
+### UI and ViewModels
+
+The UI is built with Jetpack Compose. ViewModels keep screen state and business logic outside the composable functions.
+
+| Component | Responsibility |
+|---|---|
+| `HomeView` / `HomeViewModel` | Home screen and authentication-aware actions |
+| `LoginScreen` / `LoginViewModel` | Login form and sign-in state |
+| `RegisterScreen` / `RegisterViewModel` | Registration form and account creation |
+| `GameScreenView` / `GameViewModel` | Order generation, selected items, timer, score, lives and level |
+| `GameOverView` / `GameOverViewModel` | End-of-game presentation and score submission |
+| `ProfileScreen` / `ProfileViewModel` | Player profile and statistics |
+| `OrderSection` | Displays the current customer order |
+| `SelectionDialog` | Allows the player to select menu items |
+| `SelectedItemsArea` | Displays selected items |
+| `StatusRow` | Displays game status information |
+
+### Game state
+
+`GameViewModel` exposes observable state using `StateFlow`, including:
+
+- Score
+- Lives
+- Level
+- Timer
+- Target order
+- Selected items
+
+A coroutine controls the countdown. When the timer expires, the game applies the life-loss logic. New orders are generated from the menu data and the selected items are reset between orders.
+
+### Data and repositories
+
+- `AuthRepository` wraps Firebase Authentication and Firestore profile operations. It creates user profiles and updates the highest score/level when new values exceed the stored statistics.
+- `ScoreRepository` writes score records to the Firestore `scores` collection and provides a query for the highest scores.
+- `SettingsRepository` stores the sound volume in DataStore Preferences.
+- `ResultWrapper` represents loading, success and error outcomes for repository operations.
+
+### Dependency injection
+
+`views/AppModule.kt` provides singleton instances of `FirebaseAuth` and `FirebaseFirestore`. Hilt injects these dependencies into the repositories and ViewModels.
+
+## Project structure
+
+```text
+repository-root/
+├── CafeManager/                  # Android Studio / Gradle project
+│   ├── app/
+│   │   └── src/main/java/com/example/cafemanager/
+│   │       ├── game/
+│   │       ├── login/
+│   │       ├── models/
+│   │       ├── navigation/
+│   │       ├── profile/
+│   │       ├── register/
+│   │       ├── repositories/
+│   │       ├── settings/
+│   │       ├── ui/
+│   │       ├── utils/
+│   │       ├── views/
+│   │       ├── MainActivity.kt
+│   │       └── MyCafeManagerApp.kt
+│   ├── build.gradle.kts
+│   └── settings.gradle.kts
+├── docs/
+│   ├── 1.png ... 9.png
+│   └── ad.png
+└── README.md
 ```
 
-## Implementação do Projeto 
+## Screenshots
 
-A implementação do projeto foi realizada em Kotlin, recorrendo ao **Jetpack Compose** para a criação da interface gráfica e ao modelo de programação **MVVM** (Model-View-ViewModel) para a estruturação do código
+The repository includes application images in the `docs/` directory. Add or replace the images below with the clearest captures of the main menu, gameplay, login, profile and game-over screens.
 
-A classe `MainActivity` é onde a aplicação começa, sendo responsável por carregar o ecrã principal através de componentes Compose. A interface gráfica é formada por diversos componentes, cada um com uma função específica, como a área de seleção de itens, a exibição do pedido atual e a demonstração do estado do jogo
+| Application preview | |
+|---|---|
+| ![Screenshot 1](docs/1.png) | ![Screenshot 2](docs/2.png) |
+| ![Screenshot 3](docs/3.png) | ![Screenshot 4](docs/4.png) |
+| ![Screenshot 5](docs/5.png) | ![Screenshot 6](docs/6.png) |
 
-A lógica de funcionamento da aplicação encontra-se centralizada no `GameViewModel`, que controla o estado geral do jogo. Este ViewModel mantém a lista de itens selecionados, executa as ações do utilizador e garante a consistência do fluxo do jogo. A utilização de estados observáveis permite que a interface se atualize automaticamente sempre que há uma mudança nos dados, sem necessidade de controlo manual da UI
+## Getting started
 
-O **Dagger Hilt** foi implementado como a solução de Injeção de Dependências, permitindo que instâncias globais, como os repositórios e os clientes do Firebase, sejam injetadas automaticamente nos ViewModels, eliminando a criação manual de objetos e facilitando a testabilidade. Paralelamente, o **Firebase** atua como a infraestrutura de backend; o **Firebase Authentication** gere o ciclo de vida de acesso dos utilizadores, enquanto o **Cloud Firestore** permite a persistência reativa de dados na nuvem. Esta combinação possibilita que o progresso do jogador e as suas credenciais sejam sincronizados em tempo real, utilizando flows assíncronos que mantêm a interface do jogo sempre atualizada com o estado mais recente do servidor
+### Requirements
 
-O modelo de dados é formado principalmente pela classe `GameItem`, uma data class que tem a função de representar os produtos disponíveis no café, incluindo bebidas e sobremesas. Esta classe é empregada pelo `GameViewModel` para gerir os pedidos realizados pelo utilizador e preservar o estado da aplicação. A classe `PlayerScore` foi criada para controlar o registro de desempenho dos jogadores, servindo como a conexão entre a sessão de jogo e a base de dados. Além de guardar a pontuação final e o nível alcançado, este modelo faz uso de identificadores únicos (userId) e marcas de tempo (timestamps) para assegurar a integridade das informações no **Firestore**
-
-## Tecnologias Usadas 
-- Kotlin
 - Android Studio
-- Jetpack Compose
-- GitHub
-- Firebase (Auth & Firestore)
-- Dagger Hilt
-- Jetpack DataStore
-- Navigation Compose
+- Android SDK compatible with the project's Gradle configuration
+- JDK compatible with the Android Gradle Plugin
+- A Firebase project configured for the application
 
-## Dificuldades
+### Firebase setup
 
-Durante o desenvolvimento do projeto foram identificadas algumas dificuldades, nomeadamente:
+The app uses Firebase Authentication and Cloud Firestore.
 
-* **Posicionamento de Elementos:** A aplicação de `offset` para posicionar os elementos sobre uma imagem de fundo fixa, de modo que se ajustassem aos locais predefinidos no protótipo, exigiu vários testes de proporção
-* **Sincronização do Timer:** Resetar o `timerJob` corretamente ao mudar de nível ou ao perder uma vida para evitar bugs de contagem múltipla
-* **Mapeamento de Erros:** converter exceções técnicas do **Firebase** para mensagens acessíveis para o utilizador através do `ResultWrapper`
+1. Create or select a Firebase project.
+2. Register an Android application using the package name `com.example.cafemanager`.
+3. Enable the authentication provider used by the app (email and password).
+4. Enable Cloud Firestore.
+5. Add the Firebase Android configuration file to the app module as `app/google-services.json`.
+6. Configure Firestore security rules for authenticated users. Users should only be able to access and update their own profile data, while score reads/writes should follow the intended leaderboard permissions.
 
-## Conclusões 
-A criação do projeto **CafeManager** permitiu a consolidação dos conhecimentos obtidos na disciplina, especialmente no que se refere ao desenvolvimento de jogos e aplicações para dispositivos móveis
+Do not include Firebase service-account credentials or private server keys in the Android application. The Android client configuration file is not a substitute for Firestore security rules.
 
-O projeto representou um ponto significativo na compreensão do ecossistema Android. A utilização do **Jetpack Compose** demonstrou como a interface declarativa facilita o gerenciamento de estados complexos, algo essencial em ambientes de jogo onde diversos elementos (timer, score, animações) alteram-se ao mesmo tempo
+### Run the app
 
-A implementação do **Firebase** foi crucial para assegurar que as informações dos jogadores não permanecessem restritas ao dispositivos, oferecendo uma vivência de jogo contínua e segura na nuvem. Por sua vez, o **Dagger Hilt** facilitou a administração de dependências, possibilitando uma estrutura mais organizada e modular. Essas ferramentas, juntas, não apenas simplificaram o desenvolvimento atual, como também garantiram que a aplicação suporte diversos utilizadores e funcionalidades online de forma eficiente
+1. Clone the repository.
+2. Open the inner `CafeManager/` directory (the one containing `settings.gradle.kts`) in Android Studio.
+3. Add the Firebase configuration described above.
+4. Allow Gradle to sync.
+5. Run the `app` configuration on an emulator or Android device.
 
-Do ponto de vista técnico, a implementação da arquitetura **MVVM** possibilitou separar totalmente a lógica do jogo da camada de apresentação. Essa modularização não apenas tornou a depuração de falhas durante o desenvolvimento mais simples, mas também assegura que o projeto seja extremamente escalável, possibilitando a inclusão futura de novas mecânicas como power-ups
+## Data model
+
+The game menu uses a `GameItem` data model to represent selectable drinks and desserts. Player data is represented by models including `PlayerScore` and `UserProfile`.
+
+## Known implementation notes
+
+- `game/GameScreen.kt` is currently an empty placeholder; the active game screen implementation is `views/GameScreenView.kt`.
+- `ScoreRepository` includes a top-scores query, but its source comments indicate that this query is not currently used in the main flow.
+- The supplied project archive contains generated build output and IDE metadata. These files are not needed to build from source and should be excluded from version control.
+- The README describes the implementation present in the supplied source archive; update it if the Firebase schema or gameplay flow changes.
+
+---
+
+*Academic Android game project developed at IPCA.*
